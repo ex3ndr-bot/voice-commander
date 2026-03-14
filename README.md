@@ -1,58 +1,36 @@
 # Voice Commander
 
-Voice Commander is a local desktop-style web app that simulates a voice-controlled automation agent. It combines a TypeScript + Express backend with a premium dark UI, browser voice input via the Web Speech API, a live task timeline, and a lightweight persona layer that learns recurring commands and topics.
+Static GitHub Pages demo for a desktop-style voice agent. The app is pure HTML, CSS, and JavaScript with no backend services.
 
 ## Features
 
-- Express server on port `3000`
-- Static single-page frontend served from `public/`
-- API endpoints for command execution, task history, and persona retrieval
-- Simulated task engine for commands like `organize files`, `classify documents`, and `summarize text`
-- Persistent `persona.json` storage for learned preferences, frequent commands, and topics
-- Voice input support in compatible browsers
+- Floating command dock with keyboard and Web Speech API input
+- Glassmorphism desktop UI with cyan/teal terminal styling
+- Simulated task engine for `organize`, `classify`, and `summarize` workflows
+- Local persona tracking with `localStorage` for command habits and output preferences
+- GitHub Pages friendly build with `.nojekyll`
 
-## Project Structure
+## File Structure
 
-```text
-voice-commander/
-├── package.json
-├── tsconfig.json
-├── persona.json
-├── public/
-│   ├── app.js
-│   ├── index.html
-│   └── style.css
-└── src/
-    ├── persona.ts
-    ├── server.ts
-    └── taskEngine.ts
+- `index.html` - main application shell
+- `style.css` - visual system, layout, and animations
+- `js/app.js` - UI wiring, command handling, and speech recognition
+- `js/taskEngine.js` - simulated workflow processor
+- `js/persona.js` - persona memory and local preference tracking
+- `.nojekyll` - disables Jekyll processing on GitHub Pages
+
+## Running Locally
+
+Open `index.html` directly in a browser, or serve the repo with a static file server:
+
+```bash
+python3 -m http.server 8000
 ```
 
-## Setup
-
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app:
-
-   ```bash
-   npm run dev
-   ```
-
-3. Open `http://localhost:3000`
-
-## API
-
-- `POST /api/command`
-  - Body: `{ "command": "organize files" }`
-- `GET /api/history`
-- `GET /api/persona`
+Then open `http://localhost:8000`.
 
 ## Notes
 
-- Task execution is simulated for local development.
-- Persona signals persist in `persona.json`.
-- Voice recognition depends on browser support for `SpeechRecognition` or `webkitSpeechRecognition`.
+- Voice input depends on browser support for `SpeechRecognition` or `webkitSpeechRecognition`.
+- If voice recognition is unavailable, the demo automatically falls back to typed commands.
+- All persona data stays in the browser via `localStorage`.

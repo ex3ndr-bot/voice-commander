@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Commander</title>
+  <meta
+    name="description"
+    content="Voice Commander is a static desktop agent demo with voice-triggered command handling, task history, and adaptive persona tracking."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="background-grid" aria-hidden="true"></div>
+  <div class="background-glow background-glow-left" aria-hidden="true"></div>
+  <div class="background-glow background-glow-right" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <aside class="persona-panel glass-panel">
+      <div class="panel-header">
+        <p class="eyebrow">Adaptive Persona</p>
+        <h1>Voice Commander</h1>
+      </div>
+
+      <section class="persona-card">
+        <div class="status-row">
+          <span class="status-dot"></span>
+          <span id="persona-mode">Listening for workflow preferences</span>
+        </div>
+        <p id="persona-summary" class="muted">
+          No patterns learned yet. Run a few commands to shape the operator profile.
+        </p>
+      </section>
+
+      <section class="stat-grid" aria-label="Persona statistics">
+        <article class="stat-card">
+          <span class="stat-label">Commands</span>
+          <strong id="stat-commands">0</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Top Intent</span>
+          <strong id="stat-intent">Idle</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Preferred Tone</span>
+          <strong id="stat-tone">Concise</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Saved Context</span>
+          <strong id="stat-context">0</strong>
+        </article>
+      </section>
+
+      <section class="preference-section">
+        <div class="section-title-row">
+          <h2>Preferences</h2>
+          <span class="section-caption">Stored locally</span>
+        </div>
+        <ul id="preference-list" class="token-list">
+          <li class="token">No preferences yet</li>
+        </ul>
+      </section>
+
+      <section class="pattern-section">
+        <div class="section-title-row">
+          <h2>Command Patterns</h2>
+          <span class="section-caption">Recent habits</span>
+        </div>
+        <ul id="pattern-list" class="pattern-list">
+          <li class="pattern-item pattern-empty">Awaiting command traffic.</li>
+        </ul>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <header class="hero glass-panel">
+        <div>
+          <p class="eyebrow">Desktop Agent Demo</p>
+          <h2>Pure static interface for voice-first task orchestration.</h2>
+        </div>
+        <div class="hero-metrics" aria-label="System status">
+          <div class="metric-pill">
+            <span class="metric-label">Mode</span>
+            <strong id="system-mode">Standby</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label">Speech API</span>
+            <strong id="speech-support">Checking...</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label">Engine</span>
+            <strong>Simulated</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="main-grid">
+        <article class="history-panel glass-panel">
+          <div class="section-title-row">
+            <h2>Task History</h2>
+            <button id="seed-demo" class="ghost-button" type="button">Run Demo Queue</button>
+          </div>
+          <div id="history-list" class="history-list" aria-live="polite"></div>
+        </article>
+
+        <article class="output-panel glass-panel">
+          <div class="section-title-row">
+            <h2>Terminal Output</h2>
+            <button id="clear-log" class="ghost-button" type="button">Clear Log</button>
+          </div>
+          <div id="terminal-log" class="terminal-log" aria-live="polite">
+            <div class="log-line">
+              <span class="log-prefix">system</span>
+              <span>Voice Commander booted. Awaiting operator command.</span>
+            </div>
+          </div>
+          <div class="suggestions">
+            <button class="suggestion-chip" type="button" data-command="Organize my downloads by file type">
+              Organize my downloads by file type
+            </button>
+            <button class="suggestion-chip" type="button" data-command="Classify these notes as product, ops, or personal">
+              Classify these notes as product, ops, or personal
+            </button>
+            <button class="suggestion-chip" type="button" data-command="Summarize today's standup updates in concise bullets">
+              Summarize today's standup updates in concise bullets
+            </button>
+          </div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <div class="command-dock glass-panel">
+    <button id="voice-toggle" class="voice-button" type="button" aria-pressed="false">
+      <span class="voice-ring"></span>
+      <span class="voice-core"></span>
+    </button>
+    <div class="command-input-wrap">
+      <label class="sr-only" for="command-input">Command input</label>
+      <input
+        id="command-input"
+        class="command-input"
+        type="text"
+        placeholder="Try: organize screenshots from this week"
+        autocomplete="off"
+      >
+      <p id="command-hint" class="command-hint">Voice and keyboard input available.</p>
+    </div>
+    <button id="run-command" class="primary-button" type="button">Execute</button>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
