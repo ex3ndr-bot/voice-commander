@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Commander</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero-card">
+        <div class="hero-copy">
+          <p class="eyebrow">LOCAL DESKTOP AGENT</p>
+          <h1>Voice Commander</h1>
+          <p class="hero-text">
+            Speak or type commands to simulate a premium local automation workflow, with a persona layer that learns how you work.
+          </p>
+        </div>
+        <div class="hero-status">
+          <div class="status-chip">
+            <span class="status-dot"></span>
+            Voice + text orchestration
+          </div>
+          <div class="status-chip subtle" id="voice-support-chip">Checking browser voice support...</div>
+        </div>
+      </header>
+
+      <div class="command-dock">
+        <form id="command-form" class="command-bar">
+          <input
+            id="command-input"
+            name="command"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder='Try "organize files" or "summarize text"'
+          />
+          <button type="button" id="voice-button" class="voice-button" aria-label="Start voice input">
+            <span class="voice-ring"></span>
+            <span class="voice-label">Voice</span>
+          </button>
+          <button type="submit" class="submit-button">Run Command</button>
+        </form>
+      </div>
+
+      <main class="dashboard">
+        <section class="panel history-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">ACTIVITY</p>
+              <h2>Task Timeline</h2>
+            </div>
+            <p class="panel-meta" id="history-count">0 commands</p>
+          </div>
+          <div id="history-list" class="timeline empty-state">
+            <div class="empty-card">
+              <h3>No commands yet</h3>
+              <p>The timeline will populate as soon as you run a task.</p>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel persona-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">LEARNING LAYER</p>
+              <h2>Persona</h2>
+            </div>
+            <p class="panel-meta" id="persona-updated">Awaiting signals</p>
+          </div>
+
+          <div class="persona-grid">
+            <div class="persona-card metric-card">
+              <span>Total Commands</span>
+              <strong id="total-commands">0</strong>
+            </div>
+
+            <div class="persona-card">
+              <h3>Preferences</h3>
+              <ul id="preferences-list" class="tag-list"></ul>
+            </div>
+
+            <div class="persona-card">
+              <h3>Frequent Commands</h3>
+              <ul id="frequent-commands-list" class="metric-list"></ul>
+            </div>
+
+            <div class="persona-card">
+              <h3>Topics</h3>
+              <ul id="topics-list" class="metric-list"></ul>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <template id="history-item-template">
+      <article class="timeline-item">
+        <div class="timeline-marker"></div>
+        <div class="timeline-content">
+          <div class="timeline-topline">
+            <code class="command-text"></code>
+            <span class="timeline-time"></span>
+          </div>
+          <p class="result-text"></p>
+          <div class="topic-tags"></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
