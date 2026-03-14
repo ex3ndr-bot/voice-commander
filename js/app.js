@@ -1,254 +1,226 @@
-import { processTask } from "./taskEngine.js";
-import { buildPersonaSummary, getPersonaProfile, getTopIntent, recordPersonaEvent } from "./persona.js";
+const commandInput = document.getElementById('commandInput');
+const runBtn = document.getElementById('runBtn');
+const resultOutput = document.getElementById('resultOutput');
+const suggestionsEl = document.getElementById('suggestions');
+const historyList = document.getElementById('historyList');
+const historyTemplate = document.getElementById('historyTemplate');
+const tutorialBtn = document.getElementById('tutorialBtn');
+const tutorialStatus = document.getElementById('tutorialStatus');
+const tutorialStepsEl = document.getElementById('tutorialSteps');
+const soundToggle = document.getElementById('soundToggle');
 
-const state = {
-  history: [],
-  recognition: null,
-  speechSupported: false,
-  listening: false
-};
+const state = window.Persona.init();
+const engine = window.TaskEngine;
+let selectedSuggestion = -1;
+let tutorialRunning = false;
+let tutorialStep = 0;
+let audioCtx;
 
-const elements = {
-  commandInput: document.querySelector("#command-input"),
-  commandHint: document.querySelector("#command-hint"),
-  runButton: document.querySelector("#run-command"),
-  voiceToggle: document.querySelector("#voice-toggle"),
-  historyList: document.querySelector("#history-list"),
-  terminalLog: document.querySelector("#terminal-log"),
-  systemMode: document.querySelector("#system-mode"),
-  speechSupport: document.querySelector("#speech-support"),
-  seedDemo: document.querySelector("#seed-demo"),
-  clearLog: document.querySelector("#clear-log"),
-  preferenceList: document.querySelector("#preference-list"),
-  patternList: document.querySelector("#pattern-list"),
-  personaSummary: document.querySelector("#persona-summary"),
-  personaMode: document.querySelector("#persona-mode"),
-  statCommands: document.querySelector("#stat-commands"),
-  statIntent: document.querySelector("#stat-intent"),
-  statTone: document.querySelector("#stat-tone"),
-  statContext: document.querySelector("#stat-context")
-};
+function ensureAudio() {
+  if (!soundToggle.checked) return null;
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  return audioCtx;
+}
 
-function appendLog(prefix, message) {
-  const line = document.createElement("div");
-  line.className = "log-line";
-  line.innerHTML = `
-    <span class="log-prefix">${prefix}</span>
-    <span>${message}</span>
-  `;
-  elements.terminalLog.prepend(line);
+function beep(freq = 720, duration = 0.06, gainValue = 0.025) {
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.value = gainValue;
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
 }
 
 function renderHistory() {
-  if (!state.history.length) {
-    elements.historyList.innerHTML = `
-      <div class="history-card">
-        <div class="history-card-header">
-          <strong>No tasks yet</strong>
-          <span class="history-state">Idle</span>
-        </div>
-        <div class="history-card-meta">
-          <span>Submit a voice or keyboard command to populate the queue.</span>
-          <span>--:--</span>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  elements.historyList.innerHTML = state.history
-    .map(
-      (task) => `
-        <article class="history-card">
-          <div class="history-card-header">
-            <strong>${task.intent}</strong>
-            <span class="history-state">${task.state}</span>
-          </div>
-          <div class="history-card-command">$ ${task.command}</div>
-          <p>${task.summary}</p>
-          <div class="history-card-meta">
-            <span>${task.preview[0]}</span>
-            <span>${task.timestamp}</span>
-          </div>
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderPersona(profile = getPersonaProfile()) {
-  elements.personaSummary.textContent = buildPersonaSummary(profile);
-  elements.personaMode.textContent = profile.totalCommands
-    ? "Adapting to operator behavior"
-    : "Listening for workflow preferences";
-  elements.statCommands.textContent = String(profile.totalCommands);
-  elements.statIntent.textContent = getTopIntent(profile);
-  elements.statTone.textContent = profile.preferences.tone || "Concise";
-  elements.statContext.textContent = String(profile.recentContexts.length);
-
-  const preferences = Object.entries(profile.preferences);
-  elements.preferenceList.innerHTML = preferences.length
-    ? preferences
-        .map(([key, value]) => `<li class="token">${key}: ${value}</li>`)
-        .join("")
-    : `<li class="token">No preferences yet</li>`;
-
-  elements.patternList.innerHTML = profile.patterns.length
-    ? profile.patterns.map((pattern) => `<li class="pattern-item">${pattern}</li>`).join("")
-    : `<li class="pattern-item pattern-empty">Awaiting command traffic.</li>`;
-}
-
-function updateListeningUI(isListening) {
-  state.listening = isListening;
-  elements.voiceToggle.classList.toggle("is-listening", isListening);
-  elements.voiceToggle.setAttribute("aria-pressed", String(isListening));
-  elements.systemMode.textContent = isListening ? "Listening" : "Standby";
-  elements.commandHint.textContent = isListening
-    ? "Listening... speak naturally."
-    : state.speechSupported
-      ? "Voice and keyboard input available."
-      : "Speech API unavailable. Keyboard command mode active.";
-}
-
-function setupSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    elements.speechSupport.textContent = "Fallback";
-    state.speechSupported = false;
-    updateListeningUI(false);
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.interimResults = true;
-  recognition.continuous = false;
-
-  recognition.onstart = () => {
-    updateListeningUI(true);
-    appendLog("audio", "Speech recognition activated.");
-  };
-
-  recognition.onresult = (event) => {
-    const transcript = Array.from(event.results)
-      .map((result) => result[0].transcript)
-      .join(" ")
-      .trim();
-
-    elements.commandInput.value = transcript;
-
-    if (event.results[event.results.length - 1].isFinal && transcript) {
-      void executeCommand(transcript, "voice");
-    }
-  };
-
-  recognition.onerror = (event) => {
-    updateListeningUI(false);
-    appendLog("error", `Voice input unavailable: ${event.error}.`);
-  };
-
-  recognition.onend = () => {
-    updateListeningUI(false);
-  };
-
-  state.recognition = recognition;
-  state.speechSupported = true;
-  elements.speechSupport.textContent = "Native";
-  updateListeningUI(false);
-}
-
-async function executeCommand(rawCommand, source = "manual") {
-  const command = rawCommand.trim();
-
-  if (!command) {
-    appendLog("system", "Ignored empty command.");
-    return;
-  }
-
-  elements.commandInput.value = "";
-  elements.systemMode.textContent = "Processing";
-  appendLog(source, `Received command: "${command}"`);
-
-  const task = await processTask(command);
-  state.history = [task, ...state.history].slice(0, 8);
-  renderHistory();
-
-  const profile = recordPersonaEvent(command, task.intent);
-  renderPersona(profile);
-
-  appendLog("agent", task.summary);
-  task.preview.forEach((line) => appendLog("preview", line));
-  elements.systemMode.textContent = "Standby";
-}
-
-function bindEvents() {
-  elements.runButton.addEventListener("click", () => {
-    void executeCommand(elements.commandInput.value, "manual");
-  });
-
-  elements.commandInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      void executeCommand(elements.commandInput.value, "manual");
-    }
-  });
-
-  elements.voiceToggle.addEventListener("click", () => {
-    if (!state.speechSupported || !state.recognition) {
-      appendLog("system", "SpeechRecognition API not available. Use typed commands instead.");
-      elements.commandInput.focus();
-      return;
-    }
-
-    if (state.listening) {
-      state.recognition.stop();
-      return;
-    }
-
-    state.recognition.start();
-  });
-
-  elements.seedDemo.addEventListener("click", async () => {
-    const demoCommands = [
-      "Organize my downloads by file type",
-      "Classify these notes as product, ops, or personal",
-      "Summarize today's standup updates in concise bullets"
-    ];
-
-    for (const command of demoCommands) {
-      // Sequential playback keeps the terminal output readable.
-      // eslint-disable-next-line no-await-in-loop
-      await executeCommand(command, "demo");
-    }
-  });
-
-  elements.clearLog.addEventListener("click", () => {
-    elements.terminalLog.innerHTML = `
-      <div class="log-line">
-        <span class="log-prefix">system</span>
-        <span>Terminal cleared. Awaiting operator command.</span>
-      </div>
-    `;
-  });
-
-  document.querySelectorAll(".suggestion-chip").forEach((button) => {
-    button.addEventListener("click", () => {
-      const { command } = button.dataset;
-      if (command) {
-        elements.commandInput.value = command;
-        void executeCommand(command, "shortcut");
-      }
+  historyList.innerHTML = '';
+  engine.history.forEach((item, index) => {
+    const node = historyTemplate.content.firstElementChild.cloneNode(true);
+    node.querySelector('.history-type').textContent = item.type;
+    node.querySelector('.history-command').textContent = item.command;
+    node.querySelector('.history-time').textContent = item.time;
+    node.querySelector('.detail-intent').textContent = item.intent;
+    node.querySelector('.detail-confidence').textContent = item.confidence;
+    node.querySelector('.detail-action').textContent = item.action;
+    node.querySelector('.detail-result').textContent = item.result;
+    node.querySelector('.history-summary').addEventListener('click', () => {
+      node.classList.toggle('open');
+      beep(node.classList.contains('open') ? 840 : 640, 0.04, 0.02);
     });
+    if (index === 0) node.classList.add('open');
+    historyList.appendChild(node);
   });
 }
 
-function init() {
-  renderHistory();
-  renderPersona();
-  setupSpeechRecognition();
-  bindEvents();
-  appendLog("system", "Local persona memory loaded from browser storage.");
+function renderSuggestions() {
+  const matches = engine.getMatches(commandInput.value);
+  suggestionsEl.innerHTML = '';
+  if (!matches.length || document.activeElement !== commandInput) {
+    suggestionsEl.classList.remove('visible');
+    selectedSuggestion = -1;
+    return matches;
+  }
+  matches.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'suggestion-item' + (idx === selectedSuggestion ? ' active' : '');
+    div.innerHTML = `${item.pattern}<small>${item.hint}</small>`;
+    div.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      applySuggestion(idx, matches);
+    });
+    suggestionsEl.appendChild(div);
+  });
+  suggestionsEl.classList.add('visible');
+  return matches;
 }
 
-init();
+function applySuggestion(idx, matches = engine.getMatches(commandInput.value)) {
+  if (!matches[idx]) return;
+  commandInput.value = matches[idx].pattern;
+  selectedSuggestion = idx;
+  renderSuggestions();
+  beep(920, 0.04, 0.018);
+}
+
+function typeText(text) {
+  resultOutput.textContent = '';
+  let i = 0;
+  const interval = setInterval(() => {
+    resultOutput.textContent += text[i] || '';
+    if (i % 12 === 0) beep(420 + (i % 5) * 50, 0.012, 0.006);
+    i += 1;
+    if (i >= text.length) clearInterval(interval);
+  }, 10);
+}
+
+function runCommand(value) {
+  const parsed = engine.inferCommand(value);
+  typeText(parsed.result);
+  engine.history.unshift({
+    type: parsed.type,
+    command: value,
+    time: 'Just now',
+    intent: parsed.intent,
+    confidence: parsed.confidence,
+    action: parsed.action,
+    result: parsed.result.split('\n').slice(-1)[0] || 'Completed.'
+  });
+  renderHistory();
+  renderSuggestions();
+  beep(760, 0.05, 0.028);
+}
+
+function setTutorialStep(nextStep) {
+  [...tutorialStepsEl.querySelectorAll('li')].forEach((li, idx) => {
+    li.classList.toggle('active', idx === nextStep);
+  });
+}
+
+function startTutorial() {
+  tutorialRunning = true;
+  tutorialStep = 0;
+  tutorialStatus.textContent = 'Running';
+  const sequence = [
+    'search for neon glass desktop ui inspiration',
+    'open app Figma',
+    'set timer for 15 minutes',
+    'take note Add onboarding overlay and richer history cards'
+  ];
+
+  function advance() {
+    if (tutorialStep >= sequence.length) {
+      tutorialStatus.textContent = 'Complete';
+      tutorialRunning = false;
+      commandInput.value = '';
+      renderSuggestions();
+      return;
+    }
+    setTutorialStep(tutorialStep);
+    commandInput.value = sequence[tutorialStep];
+    renderSuggestions();
+    setTimeout(() => runCommand(sequence[tutorialStep]), 260);
+    tutorialStep += 1;
+    setTimeout(advance, 1900);
+  }
+
+  advance();
+}
+
+runBtn.addEventListener('click', () => runCommand(commandInput.value));
+commandInput.addEventListener('input', () => {
+  selectedSuggestion = -1;
+  renderSuggestions();
+});
+commandInput.addEventListener('focus', renderSuggestions);
+commandInput.addEventListener('blur', () => setTimeout(() => suggestionsEl.classList.remove('visible'), 120));
+
+document.querySelectorAll('.example-chip').forEach((button) => {
+  button.addEventListener('click', () => {
+    commandInput.value = button.dataset.example;
+    renderSuggestions();
+    runCommand(commandInput.value);
+  });
+});
+
+tutorialBtn.addEventListener('click', () => {
+  if (!tutorialRunning) startTutorial();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === '/') {
+    if (document.activeElement !== commandInput) {
+      event.preventDefault();
+      commandInput.focus();
+      beep(880, 0.04, 0.018);
+    }
+  }
+
+  if (event.key === '?' && event.shiftKey) {
+    event.preventDefault();
+    if (!tutorialRunning) startTutorial();
+  }
+
+  if (document.activeElement === commandInput) {
+    const matches = engine.getMatches(commandInput.value);
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      selectedSuggestion = Math.min(selectedSuggestion + 1, matches.length - 1);
+      renderSuggestions();
+      beep(620, 0.03, 0.014);
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      selectedSuggestion = Math.max(selectedSuggestion - 1, 0);
+      renderSuggestions();
+      beep(560, 0.03, 0.014);
+    }
+
+    if (event.key === 'Tab' && matches.length) {
+      event.preventDefault();
+      applySuggestion(selectedSuggestion >= 0 ? selectedSuggestion : 0, matches);
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (selectedSuggestion >= 0 && matches[selectedSuggestion]) {
+        applySuggestion(selectedSuggestion, matches);
+      }
+      runCommand(commandInput.value);
+    }
+  }
+});
+
+renderHistory();
+renderSuggestions();
+setTutorialStep(-1);
+void state;

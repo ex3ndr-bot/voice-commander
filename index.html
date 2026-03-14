@@ -1,160 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Commander</title>
-  <meta
-    name="description"
-    content="Voice Commander is a static desktop agent demo with voice-triggered command handling, task history, and adaptive persona tracking."
-  >
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Commander — Premium Desktop Agent Demo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  >
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="background-grid" aria-hidden="true"></div>
-  <div class="background-glow background-glow-left" aria-hidden="true"></div>
-  <div class="background-glow background-glow-right" aria-hidden="true"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
 
-  <main class="app-shell">
-    <aside class="persona-panel glass-panel">
-      <div class="panel-header">
-        <p class="eyebrow">Adaptive Persona</p>
-        <h1>Voice Commander</h1>
+  <div class="app-shell">
+    <aside class="sidebar glass-panel">
+      <div class="sidebar-head">
+        <div>
+          <p class="eyebrow">Desktop Agent</p>
+          <h1>Voice Commander</h1>
+        </div>
+        <div class="status-pill live">Live demo</div>
       </div>
 
-      <section class="persona-card">
-        <div class="status-row">
-          <span class="status-dot"></span>
-          <span id="persona-mode">Listening for workflow preferences</span>
+      <section class="persona-card glass-subpanel neon-border">
+        <div class="persona-top">
+          <div class="avatar-ring"><div class="avatar-core">VC</div></div>
+          <div>
+            <h2>Operator Persona</h2>
+            <p>Fast, contextual, desktop-native automation</p>
+          </div>
         </div>
-        <p id="persona-summary" class="muted">
-          No patterns learned yet. Run a few commands to shape the operator profile.
-        </p>
+        <div class="metrics">
+          <div class="metric"><span class="metric-label">Intent accuracy</span><strong>98.2%</strong></div>
+          <div class="metric"><span class="metric-label">Avg. response</span><strong>220ms</strong></div>
+          <div class="metric"><span class="metric-label">Hands-free score</span><strong>94/100</strong></div>
+        </div>
       </section>
 
-      <section class="stat-grid" aria-label="Persona statistics">
-        <article class="stat-card">
-          <span class="stat-label">Commands</span>
-          <strong id="stat-commands">0</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Top Intent</span>
-          <strong id="stat-intent">Idle</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Preferred Tone</span>
-          <strong id="stat-tone">Concise</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Saved Context</span>
-          <strong id="stat-context">0</strong>
-        </article>
-      </section>
-
-      <section class="preference-section">
+      <section class="glass-subpanel chart-panel">
         <div class="section-title-row">
-          <h2>Preferences</h2>
-          <span class="section-caption">Stored locally</span>
+          <h3>Most used commands</h3>
+          <span class="tiny-badge">CSS charts</span>
         </div>
-        <ul id="preference-list" class="token-list">
-          <li class="token">No preferences yet</li>
-        </ul>
+        <div class="chart-list">
+          <div class="chart-row" style="--value: 92%"><span>Search web</span><div class="bar"><i></i></div><strong>92%</strong></div>
+          <div class="chart-row" style="--value: 78%"><span>Open app</span><div class="bar"><i></i></div><strong>78%</strong></div>
+          <div class="chart-row" style="--value: 66%"><span>Take note</span><div class="bar"><i></i></div><strong>66%</strong></div>
+          <div class="chart-row" style="--value: 57%"><span>Set timer</span><div class="bar"><i></i></div><strong>57%</strong></div>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut-chart">
+            <div class="donut-hole"><span>4</span><small>active intents</small></div>
+          </div>
+        </div>
       </section>
 
-      <section class="pattern-section">
+      <section class="glass-subpanel shortcuts-panel">
         <div class="section-title-row">
-          <h2>Command Patterns</h2>
-          <span class="section-caption">Recent habits</span>
+          <h3>Keyboard hints</h3>
+          <span class="tiny-badge">Fast path</span>
         </div>
-        <ul id="pattern-list" class="pattern-list">
-          <li class="pattern-item pattern-empty">Awaiting command traffic.</li>
+        <ul class="shortcut-list">
+          <li><kbd>/</kbd><span>Focus command input</span></li>
+          <li><kbd>↑</kbd><kbd>↓</kbd><span>Browse suggestions</span></li>
+          <li><kbd>Tab</kbd><span>Autocomplete selected command</span></li>
+          <li><kbd>Enter</kbd><span>Run command</span></li>
+          <li><kbd>Shift</kbd><kbd>?</kbd><span>Start tutorial mode</span></li>
         </ul>
       </section>
     </aside>
 
-    <section class="workspace">
-      <header class="hero glass-panel">
+    <main class="main-panel">
+      <header class="topbar glass-panel">
         <div>
-          <p class="eyebrow">Desktop Agent Demo</p>
-          <h2>Pure static interface for voice-first task orchestration.</h2>
+          <p class="eyebrow">Premium desktop agent demo</p>
+          <h2>Command your desktop with natural language</h2>
         </div>
-        <div class="hero-metrics" aria-label="System status">
-          <div class="metric-pill">
-            <span class="metric-label">Mode</span>
-            <strong id="system-mode">Standby</strong>
-          </div>
-          <div class="metric-pill">
-            <span class="metric-label">Speech API</span>
-            <strong id="speech-support">Checking...</strong>
-          </div>
-          <div class="metric-pill">
-            <span class="metric-label">Engine</span>
-            <strong>Simulated</strong>
-          </div>
+        <div class="topbar-actions">
+          <button id="tutorialBtn" class="ghost-btn">Tutorial mode</button>
+          <label class="toggle-pill">
+            <input id="soundToggle" type="checkbox" checked />
+            <span>Sound effects</span>
+          </label>
         </div>
       </header>
 
-      <section class="main-grid">
-        <article class="history-panel glass-panel">
-          <div class="section-title-row">
-            <h2>Task History</h2>
-            <button id="seed-demo" class="ghost-button" type="button">Run Demo Queue</button>
+      <section class="command-center glass-panel neon-border">
+        <div class="command-header">
+          <div>
+            <p class="eyebrow">Voice / text simulation</p>
+            <h3>Try a command</h3>
           </div>
-          <div id="history-list" class="history-list" aria-live="polite"></div>
-        </article>
+          <div class="header-chips">
+            <span class="chip">Search</span>
+            <span class="chip">Open app</span>
+            <span class="chip">Timer</span>
+            <span class="chip">Notes</span>
+          </div>
+        </div>
 
-        <article class="output-panel glass-panel">
-          <div class="section-title-row">
-            <h2>Terminal Output</h2>
-            <button id="clear-log" class="ghost-button" type="button">Clear Log</button>
+        <div class="input-wrap">
+          <div class="input-shell">
+            <span class="input-icon">⌘</span>
+            <input id="commandInput" type="text" autocomplete="off" spellcheck="false" placeholder='Try: "search for React Server Components docs"' />
+            <button id="runBtn" class="primary-btn">Run</button>
           </div>
-          <div id="terminal-log" class="terminal-log" aria-live="polite">
-            <div class="log-line">
-              <span class="log-prefix">system</span>
-              <span>Voice Commander booted. Awaiting operator command.</span>
+          <div id="suggestions" class="suggestions"></div>
+        </div>
+
+        <div class="hint-row">
+          <span>Examples:</span>
+          <button class="example-chip" data-example="search for VS Code Copilot keyboard shortcuts">search for…</button>
+          <button class="example-chip" data-example="open app Figma">open app…</button>
+          <button class="example-chip" data-example="set timer for 15 minutes">set timer…</button>
+          <button class="example-chip" data-example="take note Ship glassmorphism iteration before standup">take note…</button>
+        </div>
+
+        <div class="results-grid">
+          <section class="result-panel glass-subpanel">
+            <div class="section-title-row">
+              <h3>Agent output</h3>
+              <span class="status-pill">Streaming</span>
             </div>
-          </div>
-          <div class="suggestions">
-            <button class="suggestion-chip" type="button" data-command="Organize my downloads by file type">
-              Organize my downloads by file type
-            </button>
-            <button class="suggestion-chip" type="button" data-command="Classify these notes as product, ops, or personal">
-              Classify these notes as product, ops, or personal
-            </button>
-            <button class="suggestion-chip" type="button" data-command="Summarize today's standup updates in concise bullets">
-              Summarize today's standup updates in concise bullets
-            </button>
-          </div>
-        </article>
-      </section>
-    </section>
-  </main>
+            <pre id="resultOutput" class="terminal-output">Ready. Waiting for your command…</pre>
+          </section>
 
-  <div class="command-dock glass-panel">
-    <button id="voice-toggle" class="voice-button" type="button" aria-pressed="false">
-      <span class="voice-ring"></span>
-      <span class="voice-core"></span>
-    </button>
-    <div class="command-input-wrap">
-      <label class="sr-only" for="command-input">Command input</label>
-      <input
-        id="command-input"
-        class="command-input"
-        type="text"
-        placeholder="Try: organize screenshots from this week"
-        autocomplete="off"
-      >
-      <p id="command-hint" class="command-hint">Voice and keyboard input available.</p>
-    </div>
-    <button id="run-command" class="primary-button" type="button">Execute</button>
+          <section class="tutorial-panel glass-subpanel">
+            <div class="section-title-row">
+              <h3>Demo walkthrough</h3>
+              <span id="tutorialStatus" class="tiny-badge">Idle</span>
+            </div>
+            <ol id="tutorialSteps" class="tutorial-steps">
+              <li>Use natural language to issue a desktop command.</li>
+              <li>See autocomplete adapt as you type.</li>
+              <li>Run commands and inspect rich history entries.</li>
+              <li>Toggle sound effects and keyboard-first controls.</li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <section class="history-panel glass-panel">
+        <div class="section-title-row">
+          <div>
+            <p class="eyebrow">Trace log</p>
+            <h3>Detailed task history</h3>
+          </div>
+          <span class="tiny-badge">Expandable entries</span>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <template id="historyTemplate">
+    <article class="history-entry glass-subpanel">
+      <button class="history-summary" type="button">
+        <div>
+          <span class="history-type"></span>
+          <h4 class="history-command"></h4>
+        </div>
+        <div class="history-meta">
+          <span class="history-time"></span>
+          <span class="expand-icon">+</span>
+        </div>
+      </button>
+      <div class="history-details">
+        <div class="detail-grid">
+          <div><span class="detail-label">Intent</span><p class="detail-intent"></p></div>
+          <div><span class="detail-label">Confidence</span><p class="detail-confidence"></p></div>
+          <div><span class="detail-label">Action taken</span><p class="detail-action"></p></div>
+          <div><span class="detail-label">Result</span><p class="detail-result"></p></div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script src="js/taskEngine.js"></script>
+  <script src="js/persona.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
